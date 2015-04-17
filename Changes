@@ -1,4 +1,7 @@
 Revision history for Date::Utils
 
+0.02  Fri Apr 17 16:05:00 2015
+      - Corrected the copyright year in the README file.
+
 0.01  Fri Apr 17 15:45:00 2015
       - First version, released.

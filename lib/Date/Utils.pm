@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.01';
+$Date::Utils::VERSION = '0.02';
 
 use strict; use warnings;
 use 5.006;
@@ -16,7 +16,7 @@ Date::Utils - Helper package for dates.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =head1 DESCRIPTION
 
