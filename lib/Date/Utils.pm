@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.03';
+$Date::Utils::VERSION = '0.04';
 
 use strict; use warnings;
 use 5.006;
@@ -16,7 +16,7 @@ Date::Utils - Helper package for dates.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 DESCRIPTION
 
@@ -49,6 +49,7 @@ Collection of common date related functions.
     $PERSIAN_DAY
     persian_to_gregorian
     persian_to_julian
+    days_in_persian_month_year
 
     julian_to_bahai
     julian_to_persian
@@ -428,12 +429,15 @@ sub is_persian_leap_year {
 
 =head2 days_in_persian_month_year($month, $year)
 
+Returns total numver of days in the given Persian month year.
+
 =cut
 
 sub days_in_persian_month_year {
     my ($month, $year) = @_;
 
-    _validate_date($year, $month, 1);
+    _validate_year($year);
+    _validate_month($month);
 
     my (@start, @end);
     @start = persian_to_gregorian($year, $month, 1);

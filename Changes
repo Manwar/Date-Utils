@@ -1,5 +1,9 @@
 Revision history for Date::Utils
 
+0.04  Sat Apr 18 03:20:00 2015
+      - Exporting method days_in_persian_month_year().
+      - Added description to the pod of method days_in_persian_month_year().
+
 0.03  Sat Apr 18 02:45:00 2015
       - Added the following methods:
         - $PERSIAN_EPOCH
