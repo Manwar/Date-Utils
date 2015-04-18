@@ -20,8 +20,8 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-        'Time::localtime'  => 1.02,
-        'Term::ANSIColor::Markup' => '0.06',
+        'Date::Calc'      => '5.7',
+        'Time::localtime' => '1.02',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Date-Utils-*' },

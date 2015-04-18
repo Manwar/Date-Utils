@@ -1,5 +1,19 @@
 Revision history for Date::Utils
 
+0.03  Sat Apr 18 02:45:00 2015
+      - Added the following methods:
+        - $PERSIAN_EPOCH
+        - $PERSIAN_DAYS
+        - $PERSIAN_MONTHS
+        - $PERSIAN_YEAR
+        - $PERSIAN_MONTH
+        - $PERSIAN_DAY
+        - persian_to_gregorian()
+        - persian_to_julian()
+        - julian_to_persian()
+        - gregorian_to_persian()
+        - is_persian_leap_year()
+
 0.02  Fri Apr 17 16:05:00 2015
       - Corrected the copyright year in the README file.
 

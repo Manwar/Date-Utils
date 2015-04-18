@@ -1,12 +1,12 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.02';
+$Date::Utils::VERSION = '0.03';
 
 use strict; use warnings;
 use 5.006;
 use Data::Dumper;
-use POSIX qw/floor/;
-use Term::ANSIColor::Markup;
+use POSIX qw/floor ceil/;
+use Date::Calc qw/Delta_Days/;
 use parent 'Exporter';
 use vars qw(@EXPORT_OK);
 
@@ -16,44 +16,17 @@ Date::Utils - Helper package for dates.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =head1 DESCRIPTION
 
 Collection of common date related functions.
 
-=head2 Some of my calendar modules as listed below would be using it.
-
-=over 4
-
-=item L<Calendar::Bahai>
-
-=item L<Calendar::Hijri>
-
-=item L<Calendar::Persian>
-
-=item L<Calendar::Saka>
-
-=back
-
-=head2 Some of my date modules as listed below would be using it.
-
-=over 4
-
-=item L<Date::Bahai>
-
-=item L<Date::Islamic>
-
-=item L<Date::Persian>
-
-=item L<Date::Saka>
-
-=back
-
 =cut
 
 @EXPORT_OK = qw(
     $BAHAI_EPOCH
+    $PERSIAN_EPOCH
     $GREGORIAN_EPOCH
 
     $BAHAI_DAYS
@@ -62,24 +35,35 @@ Collection of common date related functions.
     $BAHAI_YEAR
     $BAHAI_MONTH
     $BAHAI_DAY
-
-    get_bahai_month_calendar
     get_major_cycle_year
     validate_bahai_year
     validate_bahai_month
     validate_bahai_day
+    bahai_to_gregorian
+    bahai_to_julian
+
+    $PERSIAN_DAYS
+    $PERSIAN_MONTHS
+    $PERSIAN_YEAR
+    $PERSIAN_MONTH
+    $PERSIAN_DAY
+    persian_to_gregorian
+    persian_to_julian
+
+    julian_to_bahai
+    julian_to_persian
+    julian_to_gregorian
+    gregorian_to_bahai
+    gregorian_to_persian
+    gregorian_to_julian
 
     jwday
-    gregorian_to_bahai
-    bahai_to_gregorian
-    julian_to_bahai
-    bahai_to_julian
-    gregorian_to_julian
-    julian_to_gregorian
     is_gregorian_leap_year
+    is_persian_leap_year
 );
 
 our $BAHAI_EPOCH     = 2394646.5;
+our $PERSIAN_EPOCH   = 1948320.5;
 our $GREGORIAN_EPOCH = 1721425.5;
 
 our $BAHAI_MONTHS = [
@@ -108,9 +92,28 @@ our $BAHAI_DAYS = [
     '<yellow><bold>    Jalal </bold></yellow>'
 ];
 
-our $BAHAI_YEAR  = sub { validate_bahai_year(@_)  };
-our $BAHAI_MONTH = sub { validate_bahai_month(@_) };
-our $BAHAI_DAY   = sub { validate_bahai_day(@_)   };
+our $BAHAI_YEAR    = sub { validate_bahai_year(@_)  };
+our $BAHAI_MONTH   = sub { validate_bahai_month(@_) };
+our $BAHAI_DAY     = sub { validate_bahai_day(@_)   };
+our $PERSIAN_YEAR  = sub { _validate_year(@_)       };
+our $PERSIAN_MONTH = sub { _validate_month(@_)      };
+our $PERSIAN_DAY   = sub { _validate_day(@_)        };
+
+our $PERSIAN_MONTHS = [
+    '',
+    'Farvardin',  'Ordibehesht',  'Khordad',  'Tir',  'Mordad',  'Shahrivar',
+    'Mehr'     ,  'Aban'       ,  'Azar'   ,  'Dey',  'Bahman',  'Esfand'
+];
+
+our $PERSIAN_DAYS = [
+    '<yellow><bold>    Yekshanbeh </bold></yellow>',
+    '<yellow><bold>     Doshanbeh </bold></yellow>',
+    '<yellow><bold>    Seshhanbeh </bold></yellow>',
+    '<yellow><bold> Chaharshanbeh </bold></yellow>',
+    '<yellow><bold>   Panjshanbeh </bold></yellow>',
+    '<yellow><bold>         Jomeh </bold></yellow>',
+    '<yellow><bold>       Shanbeh </bold></yellow>'
+];
 
 =head1 METHODS
 
@@ -180,7 +183,8 @@ sub gregorian_to_bahai {
 
 =head2 bahai_to_gregorian($major, $cycle, $year, $month, $day)
 
-Returns Gregorian date as list (yyyy, mm, dd) equivalent of the given bahai date.
+Returns Gregorian  date  as list (year, month, day) equivalent of the given bahai
+date.
 
 =cut
 
@@ -262,8 +266,8 @@ sub gregorian_to_julian {
 
 =head2 julian_to_gregorian($julian_date)
 
-Returns Gregorian date as list (yyyy, mm, dd) equivalent of the given Julian date
-C<$julian_date>.
+Returns Gregorian date as list  (year, month, day) equivalent of the given Julian
+date C<$julian_date>.
 
 =cut
 
@@ -321,47 +325,129 @@ sub is_gregorian_leap_year {
             (!((($year % 100) == 0) && (($year % 400) != 0)));
 }
 
-sub get_bahai_month_calendar {
-    my ($year, $month, $start_index) = @_;
+=head2 persian_to_gregorian($year, $month, $day)
 
-    my $line1 = '<blue><bold>+' . ('-')x76 . '+</bold></blue>';
-    my $line2 = '<blue><bold>|</bold></blue>' .
-                (' ')x29 . '<yellow><bold>' .
-                sprintf("%-9s [%3d BE]", $BAHAI_MONTHS->[$month], $year) .
-                '</bold></yellow>' . (' ')x29 . '<blue><bold>|</bold></blue>';
-    my $line3 = '<blue><bold>+';
+Returns Gregorian date as list (year, month, day) equivalent of the given Persian
+date.
 
-    for(1..7) {
-        $line3 .= ('-')x(10) . '+';
+=cut
+
+sub persian_to_gregorian {
+    my ($year, $month, $day) = @_;
+
+    _validate_date($year, $month, $day);
+    ($year, $month, $day) =  julian_to_gregorian(persian_to_julian($year, $month, $day));
+
+    return ($year, $month, $day);
+}
+
+=head2 gregorian_to_persian($year, $month, $day)
+
+Returns Persian date as list (year, month, day) equivalent of the given Gregorian
+date.
+
+=cut
+
+sub gregorian_to_persian {
+    my ($year, $month, $day) = @_;
+
+    _validate_date($year, $month, $day);
+    my $julian = gregorian_to_julian($year, $month, $day) + (floor(0 + 60 * (0 + 60 * 0) + 0.5) / 86400.0);
+    ($year, $month, $day) = julian_to_persian($julian);
+
+    return ($year, $month, $day);
+}
+
+=head2 persian_to_julian($year, $month. $day)
+
+Returns Julian date of the given Persian date.
+
+=cut
+
+sub persian_to_julian {
+    my ($year, $month, $day) = @_;
+
+    my $epbase = $year - (($year >= 0) ? 474 : 473);
+    my $epyear = 474 + ($epbase % 2820);
+
+    return $day + (($month <= 7)?(($month - 1) * 31):((($month - 1) * 30) + 6)) +
+           floor((($epyear * 682) - 110) / 2816) +
+           ($epyear - 1) * 365 +
+           floor($epbase / 2820) * 1029983 +
+           ($PERSIAN_EPOCH - 1);
+}
+
+=head2 julian_to_persian($julian_date)
+
+Returns Persian date as list  (year, month, day)  equivalent of the  given Julian
+date.
+
+=cut
+
+sub julian_to_persian {
+    my ($julian) = @_;
+
+    $julian = floor($julian) + 0.5;
+    my $depoch = $julian - persian_to_julian(475, 1, 1);
+    my $cycle  = floor($depoch / 1029983);
+    my $cyear  = $depoch % 1029983;
+
+    my $ycycle;
+    if ($cyear == 1029982) {
+        $ycycle = 2820;
     }
-    $line3 .= '</bold></blue>';
-
-    my $line4 = '<blue><bold>|</bold></blue>' .
-                join("<blue><bold>|</bold></blue>", @$BAHAI_DAYS) .
-                '<blue><bold>|</bold></blue>';
-
-    my $calendar = join("\n", $line1, $line2, $line3, $line4, $line3)."\n";
-    $calendar .= '<blue><bold>|</bold></blue>          ';
-
-    map { $calendar .= "           " } (2..($start_index %= 7));
-    foreach (1 .. 19) {
-        $calendar .= sprintf("<blue><bold>|</bold></blue><cyan><bold>%9d </bold></cyan>", $_);
-        if ($_ != 19) {
-            $calendar .= "<blue><bold>|</bold></blue>\n" . $line3 . "\n"
-                unless (($start_index + $_) % 7);
-        }
-        elsif ($_ == 19) {
-            my $x = 7 - (($start_index + $_) % 7);
-            if (($x >= 2) && ($x != 7)) {
-                $calendar .= '<blue><bold>|</bold></blue>          ';
-                map { $calendar .= ' 'x11 } (1..$x-1);
-            }
-        }
+    else {
+        my $aux1 = floor($cyear / 366);
+        my $aux2 = $cyear % 366;
+        $ycycle = floor(((2134 * $aux1) + (2816 * $aux2) + 2815) / 1028522) + $aux1 + 1;
     }
 
-    $calendar = sprintf("%s<blue><bold>|</bold></blue>\n%s\n", $calendar, $line3);
+    my $year = $ycycle + (2820 * $cycle) + 474;
+    if ($year <= 0) {
+        $year--;
+    }
 
-    return Term::ANSIColor::Markup->colorize($calendar);
+    my $yday  = ($julian - persian_to_julian($year, 1, 1)) + 1;
+    my $month = ($yday <= 186) ? ceil($yday / 31) : ceil(($yday - 6) / 30);
+    my $day   = ($julian - persian_to_julian($year, $month, 1)) + 1;
+
+    return ($year, $month, $day);
+}
+
+=head2 is_persian_leap_year($year)
+
+Returns 0 or 1 if the given Persian year C<$year> is a leap year or not.
+
+=cut
+
+sub is_persian_leap_year {
+    my ($year) = @_;
+
+    return (((((($year - (($year > 0) ? 474 : 473)) % 2820) + 474) + 38) * 682) % 2816) < 682;
+}
+
+=head2 days_in_persian_month_year($month, $year)
+
+=cut
+
+sub days_in_persian_month_year {
+    my ($month, $year) = @_;
+
+    _validate_date($year, $month, 1);
+
+    my (@start, @end);
+    @start = persian_to_gregorian($year, $month, 1);
+    if ($month == 12) {
+        $year += 1;
+        $month = 1;
+    }
+    else {
+        $month += 1;
+    }
+
+    @end = persian_to_gregorian($year, $month, 1);
+
+    return Delta_Days(@start, @end);
 }
 
 #
@@ -376,6 +462,35 @@ sub _validate_bahai_date {
     validate_bahai_year($year);
 }
 
+sub _validate_date {
+    my ($year, $month, $day) = @_;
+
+    _validate_year($year);
+    _validate_month($month);
+    _validate_day($day);
+}
+
+sub _validate_year {
+    my ($year) = @_;
+
+    die("ERROR: Invalid year [$year].\n")
+        unless (defined($year) && ($year =~ /^\d{4}$/) && ($year > 0));
+}
+
+sub _validate_month {
+    my ($month) = @_;
+
+    die("ERROR: Invalid month [$month].\n")
+        unless (defined($month) && ($month =~ /^\d{1,2}$/) && ($month >= 1) && ($month <= 12));
+}
+
+sub _validate_day {
+    my ($day) = @_;
+
+    die("ERROR: Invalid day [$day].\n")
+        unless (defined($day) && ($day =~ /^\d{1,2}$/) && ($day >= 1) && ($day <= 31));
+}
+
 =head1 AUTHOR
 
 Mohammad S Anwar, C<< <mohammad.anwar at yahoo.com> >>
@@ -383,6 +498,10 @@ Mohammad S Anwar, C<< <mohammad.anwar at yahoo.com> >>
 =head1 REPOSITORY
 
 L<https://github.com/Manwar/Date-Utils>
+
+=head1 ACKNOWLEDGEMENTS
+
+Entire logic is based on the L<code|http://www.fourmilab.ch/documents/calendar> written by John Walker.
 
 =head1 BUGS
 
