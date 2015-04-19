@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.05';
+$Date::Utils::VERSION = '0.06';
 
 use strict; use warnings;
 use 5.006;
@@ -17,7 +17,7 @@ Date::Utils - Helper package for dates.
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =head1 DESCRIPTION
 
@@ -63,12 +63,23 @@ Collection of common date related functions.
     days_in_hijri_year
     days_in_hijri_month_year
 
+    $SAKA_MONTHS
+    $SAKA_DAYS
+    $SAKA_YEAR
+    $SAKA_MONTH
+    $SAKA_DAY
+    saka_to_gregorian
+    saka_to_julian
+    days_in_saka_month_year
+
     julian_to_bahai
     julian_to_hijri
+    julian_to_saka
     julian_to_persian
     julian_to_gregorian
     gregorian_to_bahai
     gregorian_to_hijri
+    gregorian_to_saka
     gregorian_to_persian
     gregorian_to_julian
 
@@ -118,6 +129,9 @@ our $PERSIAN_DAY   = sub { _validate_day(@_)        };
 our $HIJRI_YEAR    = sub { _validate_year(@_)       };
 our $HIJRI_MONTH   = sub { _validate_month(@_)      };
 our $HIJRI_DAY     = sub { _validate_hijri_day(@_)  };
+our $SAKA_YEAR     = sub { _validate_year(@_)       };
+our $SAKA_MONTH    = sub { _validate_month(@_)      };
+our $SAKA_DAY      = sub { _validate_day(@_)        };
 
 our $PERSIAN_MONTHS = [
     '',
@@ -154,6 +168,25 @@ our $HIJRI_DAYS = [
 
 our $HIJRI_LEAP_YEAR_MOD = [
     2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29
+];
+
+our $SAKA_START  = 80;
+our $SAKA_OFFSET = 78;
+
+our $SAKA_MONTHS = [
+    undef,
+    'Chaitra', 'Vaisakha', 'Jyaistha',   'Asadha', 'Sravana', 'Bhadra',
+    'Asvina',  'Kartika',  'Agrahayana', 'Pausa',  'Magha',   'Phalguna'
+];
+
+our $SAKA_DAYS = [
+    '<yellow><bold>       Ravivara </bold></yellow>',
+    '<yellow><bold>        Somvara </bold></yellow>',
+    '<yellow><bold>    Mangalavara </bold></yellow>',
+    '<yellow><bold>      Budhavara </bold></yellow>',
+    '<yellow><bold> Brahaspativara </bold></yellow>',
+    '<yellow><bold>      Sukravara </bold></yellow>',
+    '<yellow><bold>       Sanivara </bold></yellow>',
 ];
 
 =head1 METHODS
@@ -542,8 +575,7 @@ sub days_in_persian_month_year {
     _validate_year($year);
     _validate_month($month);
 
-    my (@start, @end);
-    @start = persian_to_gregorian($year, $month, 1);
+    my @start = persian_to_gregorian($year, $month, 1);
     if ($month == 12) {
         $year += 1;
         $month = 1;
@@ -552,7 +584,7 @@ sub days_in_persian_month_year {
         $month += 1;
     }
 
-    @end = persian_to_gregorian($year, $month, 1);
+    my @end = persian_to_gregorian($year, $month, 1);
 
     return Delta_Days(@start, @end);
 }
@@ -598,6 +630,131 @@ sub days_in_hijri_month_year {
 
     return 30 if (($month % 2 == 1) || (($month == 12) && (is_hijri_leap_year($year))));
     return 29;
+
+}
+
+=head2 saka_to_gregorian($year, $month, $day)
+
+=cut
+
+sub saka_to_gregorian {
+    my ($year, $month, $day) = @_;
+
+    return julian_to_gregorian(saka_to_julian($year, $month, $day));
+}
+
+=head2 gregorian_to_sake($year, $month, $day)
+
+=cut
+
+sub gregorian_to_saka {
+    my ($year, $month, $day) = @_;
+
+    return julian_to_saka(gregorian_to_julian($year, $month, $day));
+}
+
+=head2 saka_to_julian($year, $month, $day)
+
+=cut
+
+sub saka_to_julian {
+    my ($year, $month, $day) = @_;
+
+    my $gregorian_year = $year + 78;
+    my $gregorian_day  = (is_gregorian_leap_year($gregorian_year)) ? (21) : (22);
+    my $start = gregorian_to_julian($gregorian_year, 3, $gregorian_day);
+
+    my ($julian);
+    if ($month == 1) {
+        $julian = $start + ($day - 1);
+    }
+    else {
+        my $chaitra = (is_gregorian_leap_year($gregorian_year)) ? (31) : (30);
+        $julian = $start + $chaitra;
+        my $_month = $month - 2;
+        $_month = min($_month, 5);
+        $julian += $_month * 31;
+
+        if ($month >= 8) {
+            $_month  = $month - 7;
+            $julian += $_month * 30;
+        }
+
+        $julian += $day - 1;
+    }
+
+    return $julian;
+}
+
+=head2 julian_to_saka()
+
+=cut
+
+sub julian_to_saka {
+    my ($julian) = @_;
+
+    $julian     = floor($julian) + 0.5;
+    my $year    = (julian_to_gregorian($julian))[0];
+    my $yday    = $julian - gregorian_to_julian($year, 1, 1);
+    my $chaitra = days_in_chaitra($year);
+    $year = $year - $SAKA_OFFSET;
+
+    if ($yday < $SAKA_START) {
+        $year--;
+        $yday += $chaitra + (31 * 5) + (30 * 3) + 10 + $SAKA_START;
+    }
+    $yday -= $SAKA_START;
+
+    my ($day, $month);
+    if ($yday < $chaitra) {
+        $month = 1;
+        $day   = $yday + 1;
+    }
+    else {
+        my $mday = $yday - $chaitra;
+        if ($mday < (31 * 5)) {
+            $month = floor($mday / 31) + 2;
+            $day   = ($mday % 31) + 1;
+        }
+        else {
+            $mday -= 31 * 5;
+            $month = floor($mday / 30) + 7;
+            $day   = ($mday % 30) + 1;
+        }
+    }
+
+    return ($year, $month, $day);
+}
+
+=head2 days_in_chaitra($year)
+
+=cut
+
+sub days_in_chaitra {
+    my ($year) = @_;
+
+    (is_gregorian_leap_year($year)) ? (return 31) : (return 30);
+}
+
+=head2 days_in_saka_month_year($month, $year)
+
+=cut
+
+sub days_in_saka_month_year {
+    my ($month, $year) = @_;
+
+    my @start = saka_to_gregorian($year, $month, 1);
+    if ($month == 12) {
+        $year += 1;
+        $month = 1;
+    }
+    else {
+        $month += 1;
+    }
+
+    my @end = saka_to_gregorian($year, $month, 1);
+
+    return Delta_Days(@start, @end);
 }
 
 #
