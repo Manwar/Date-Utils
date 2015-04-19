@@ -1,10 +1,11 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.04';
+$Date::Utils::VERSION = '0.05';
 
 use strict; use warnings;
 use 5.006;
 use Data::Dumper;
+use List::Util qw/min/;
 use POSIX qw/floor ceil/;
 use Date::Calc qw/Delta_Days/;
 use parent 'Exporter';
@@ -16,7 +17,7 @@ Date::Utils - Helper package for dates.
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =head1 DESCRIPTION
 
@@ -26,6 +27,7 @@ Collection of common date related functions.
 
 @EXPORT_OK = qw(
     $BAHAI_EPOCH
+    $HIJRI_EPOCH
     $PERSIAN_EPOCH
     $GREGORIAN_EPOCH
 
@@ -51,19 +53,33 @@ Collection of common date related functions.
     persian_to_julian
     days_in_persian_month_year
 
+    $HIJRI_DAYS
+    $HIJRI_MONTHS
+    $HIJRI_YEAR
+    $HIJRI_MONTH
+    $HIJRI_DAY
+    hijri_to_gregorian
+    hijri_to_julian
+    days_in_hijri_year
+    days_in_hijri_month_year
+
     julian_to_bahai
+    julian_to_hijri
     julian_to_persian
     julian_to_gregorian
     gregorian_to_bahai
+    gregorian_to_hijri
     gregorian_to_persian
     gregorian_to_julian
 
     jwday
     is_gregorian_leap_year
     is_persian_leap_year
+    is_hijri_leap_year
 );
 
 our $BAHAI_EPOCH     = 2394646.5;
+our $HIJRI_EPOCH     = 1948439.5;
 our $PERSIAN_EPOCH   = 1948320.5;
 our $GREGORIAN_EPOCH = 1721425.5;
 
@@ -99,6 +115,9 @@ our $BAHAI_DAY     = sub { validate_bahai_day(@_)   };
 our $PERSIAN_YEAR  = sub { _validate_year(@_)       };
 our $PERSIAN_MONTH = sub { _validate_month(@_)      };
 our $PERSIAN_DAY   = sub { _validate_day(@_)        };
+our $HIJRI_YEAR    = sub { _validate_year(@_)       };
+our $HIJRI_MONTH   = sub { _validate_month(@_)      };
+our $HIJRI_DAY     = sub { _validate_hijri_day(@_)  };
 
 our $PERSIAN_MONTHS = [
     '',
@@ -114,6 +133,27 @@ our $PERSIAN_DAYS = [
     '<yellow><bold>   Panjshanbeh </bold></yellow>',
     '<yellow><bold>         Jomeh </bold></yellow>',
     '<yellow><bold>       Shanbeh </bold></yellow>'
+];
+
+our $HIJRI_MONTHS = [
+    undef,
+    q/Muharram/, q/Safar/ , q/Rabi' al-awwal/, q/Rabi' al-thani/,
+    q/Jumada al-awwal/, q/Jumada al-thani/, q/Rajab/ , q/Sha'aban/,
+    q/Ramadan/ , q/Shawwal/ , q/Dhu al-Qi'dah/ , q/Dhu al-Hijjah/
+];
+
+our $HIJRI_DAYS = [
+    '<yellow><bold>      al-Ahad </bold></yellow>',
+    '<yellow><bold>   al-Ithnayn </bold></yellow>',
+    '<yellow><bold> ath-Thulatha </bold></yellow>',
+    '<yellow><bold>     al-Arbia </bold></yellow>',
+    '<yellow><bold>    al-Khamis </bold></yellow>',
+    '<yellow><bold>    al-Jumuah </bold></yellow>',
+    '<yellow><bold>      as-Sabt </bold></yellow>',
+];
+
+our $HIJRI_LEAP_YEAR_MOD = [
+    2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29
 ];
 
 =head1 METHODS
@@ -415,6 +455,69 @@ sub julian_to_persian {
     return ($year, $month, $day);
 }
 
+=head2 hijri_to_julian($year, $month, $day)
+
+Returns Julian date of the given Hijri date.
+
+=cut
+
+sub hijri_to_julian {
+    my ($year, $month, $day) = @_;
+
+    return ($day +
+            ceil(29.5 * ($month - 1)) +
+            ($year - 1) * 354 +
+            floor((3 + (11 * $year)) / 30) +
+            $HIJRI_EPOCH) - 1;
+}
+
+=head2 hijri_to_gregorian($year, $month, $day)
+
+Returns  Gregorian  date as list (year, month, day) equivalent of the given Hijri
+date.
+
+=cut
+
+sub hijri_to_gregorian {
+    my ($year, $month, $day) = @_;
+
+    _validate_hijri_date($year, $month, $day);
+    ($year, $month, $day) = julian_to_gregorian(hijri_to_julian($year, $month, $day));
+
+    return ($year, $month, $day);
+}
+
+=head2 gregorian_to_hijri($year, $month, $day)
+
+Returns  Hijri  date as list (year, month, day) equivalent of the given Gregorian
+date.
+
+=cut
+
+sub gregorian_to_hijri {
+    my ($year, $month, $day) = @_;
+
+    ($year, $month, $day) = julian_to_hijri(gregorian_to_julian($year, $month, $day));
+    return ($year, $month, $day);
+}
+
+=head2 julian_to_hijri($julian_date)
+
+Returns Hijri date as list (year, month, day) equivalent of the given Julian date.
+
+=cut
+
+sub julian_to_hijri {
+    my ($julian) = @_;
+
+    $julian   = floor($julian) + 0.5;
+    my $year  = floor(((30 * ($julian - $HIJRI_EPOCH)) + 10646) / 10631);
+    my $month = min(12, ceil(($julian - (29 + hijri_to_julian($year, 1, 1))) / 29.5) + 1);
+    my $day   = ($julian - hijri_to_julian($year, $month, 1)) + 1;
+
+    return ($year, $month, $day);
+}
+
 =head2 is_persian_leap_year($year)
 
 Returns 0 or 1 if the given Persian year C<$year> is a leap year or not.
@@ -429,7 +532,7 @@ sub is_persian_leap_year {
 
 =head2 days_in_persian_month_year($month, $year)
 
-Returns total numver of days in the given Persian month year.
+Returns total number of days in the given Persian month year.
 
 =cut
 
@@ -454,6 +557,49 @@ sub days_in_persian_month_year {
     return Delta_Days(@start, @end);
 }
 
+=head2 is_hijri_leap_year($year)
+
+Returns 0 or 1 if the given Hijri year C<$year> is a leap year or not.
+
+=cut
+
+sub is_hijri_leap_year {
+    my ($year) = @_;
+
+    my $mod = $year % 30;
+    return 1 if grep/$mod/, @$HIJRI_LEAP_YEAR_MOD;
+    return 0;
+}
+
+=head2 days_in_hijri_year($year)
+
+Returns the number of days in the given year of Hijri Calendar.
+
+=cut
+
+sub days_in_hijri_year {
+    my ($year) = @_;
+
+    (is_hijri_leap_year($year))
+    ?
+    (return 355)
+    :
+    (return 354);
+}
+
+=head2 days_in_hijri_month_year($month, $year)
+
+Returns total number of days in the given Hijri month year.
+
+=cut
+
+sub days_in_hijri_month_year {
+    my ($month, $year) = @_;
+
+    return 30 if (($month % 2 == 1) || (($month == 12) && (is_hijri_leap_year($year))));
+    return 29;
+}
+
 #
 #
 # PRIVATE METHODS
@@ -464,6 +610,14 @@ sub _validate_bahai_date {
     validate_bahai_day($day);
     validate_bahai_month($month);
     validate_bahai_year($year);
+}
+
+sub _validate_hijri_date {
+    my ($year, $month, $day) = @_;
+
+    _validate_year($year);
+    _validate_month($month);
+    _validate_hijri_day($day);
 }
 
 sub _validate_date {
@@ -493,6 +647,13 @@ sub _validate_day {
 
     die("ERROR: Invalid day [$day].\n")
         unless (defined($day) && ($day =~ /^\d{1,2}$/) && ($day >= 1) && ($day <= 31));
+}
+
+sub _validate_hijri_day {
+    my ($day) = @_;
+
+    die("ERROR: Invalid day [$day].\n")
+        unless (defined($day) && ($day =~ /^\d{1,2}$/) && ($day >= 1) && ($day <= 30));
 }
 
 =head1 AUTHOR

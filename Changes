@@ -1,5 +1,20 @@
 Revision history for Date::Utils
 
+0.05  Sun Apr 19 03:10:00 2015
+      - Added the following methods to the package Date::Utils
+        - $HIJRI_EPOCH
+        - $HIJRI_DAYS
+        - $HIJRI_MONTHS
+        - $HIJRI_YEAR
+        - $HIJRI_MONTH
+        - $HIJRI_DAY
+        - hijri_to_gregorian()
+        - hijri_to_julian()
+        - days_in_hijri_year()
+        - days_in_hijri_month_year()
+        - gregorian_to_hijri()
+        - is_hijri_leap_year()
+
 0.04  Sat Apr 18 03:20:00 2015
       - Exporting method days_in_persian_month_year().
       - Added description to the pod of method days_in_persian_month_year().
