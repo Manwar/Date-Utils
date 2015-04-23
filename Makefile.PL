@@ -20,8 +20,8 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-        'Date::Calc'      => '5.7',
-        'Time::localtime' => '1.02',
+        'Moo::Role'        => 0,
+        'namespace::clean' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Date-Utils-*' },

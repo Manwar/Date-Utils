@@ -1,5 +1,8 @@
 Revision history for Date::Utils
 
+0.07  Thu Apr 23 10:05:00 2015
+      - Re-structured as Moo Role.
+
 0.06  Sun Apr 19 18:50:00 2015
       - Added the following methods to the package Date::Utils
         - $SAKA_MONTHS

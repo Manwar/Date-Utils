@@ -6,6 +6,5 @@ Makefile.PL
 README
 lib/Date/Utils.pm
 t/00-load.t
-t/01-date-utils.t
 t/manifest.t
 t/pod.t
