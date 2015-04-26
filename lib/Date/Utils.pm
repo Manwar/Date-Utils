@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.07';
+$Date::Utils::VERSION = '0.08';
 
 =head1 NAME
 
@@ -8,7 +8,7 @@ Date::Utils - Collection of common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
