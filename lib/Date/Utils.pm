@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.08';
+$Date::Utils::VERSION = '0.09';
 
 =head1 NAME
 
@@ -8,7 +8,7 @@ Date::Utils - Collection of common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
@@ -103,34 +103,40 @@ sub is_gregorian_leap_year {
 
 =head2 validate_year($year)
 
+Validates the given C<$year>. It has to be > 0 and numbers only.
+
 =cut
 
 sub validate_year {
     my ($self, $year) = @_;
 
-    die("ERROR: Invalid year [$year]. \n")
+    die sprintf("ERROR: Invalid year [%s].\n", defined($year)?($year):(''))
         unless (defined($year) && ($year =~ /^\d+$/) && ($year > 0));
 }
 
 =head2 validate_month($month)
+
+Validates the given C<$month>. It has to be between 1 and 12.
 
 =cut
 
 sub validate_month {
     my ($self, $month) = @_;
 
-    die("ERROR: Invalid month [$month].\n")
+    die sprintf("ERROR: Invalid month [%s].\n", defined($month)?($month):(''))
         unless (defined($month) && ($month =~ /^\d+$/) && ($month >= 1) && ($month <= 12));
 }
 
 =head2 validate_day($day)
+
+Validates the given C<$day>. It has to be between 1 and 31.
 
 =cut
 
 sub validate_day {
     my ($self, $day) = @_;
 
-    die("ERROR: Invalid day [$day].\n")
+    die sprintf("ERROR: Invalid day [%s].\n", defined($day)?($day):(''))
         unless (defined($day) && ($day =~ /^\d+$/) && ($day >= 1) && ($day <= 31));
 }
 

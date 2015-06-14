@@ -1,5 +1,11 @@
 Revision history for Date::Utils
 
+0.09  Sun Jun 14 10:40:00 2015
+      - Updated the following methods to handle undef (day,month and year).
+        - validate_day()
+        - validate_month()
+        - validate_year()
+
 0.08  Sun Apr 26 13:20:00 2015
       - Added unit test script t/01-date-utils.t file.
 
