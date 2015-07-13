@@ -1,5 +1,8 @@
 Revision history for Date::Utils
 
+0.10  Mon Jul 13 11:10:00 2015
+      - Added method create_calendar().
+
 0.09  Sun Jun 14 10:40:00 2015
       - Updated the following methods to handle undef (day,month and year).
         - validate_day()
