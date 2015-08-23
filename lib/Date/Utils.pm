@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.10';
+$Date::Utils::VERSION = '0.11';
 
 =head1 NAME
 
@@ -8,7 +8,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
@@ -19,6 +19,10 @@ use Term::ANSIColor::Markup;
 
 use Moo::Role;
 use namespace::clean;
+
+use Date::Exception::InvalidDay;
+use Date::Exception::InvalidMonth;
+use Date::Exception::InvalidYear;
 
 has gregorian_epoch => (is => 'ro', default => sub { 1721425.5 });
 
@@ -152,7 +156,14 @@ Validates the given C<$year>. It has to be > 0 and numbers only.
 sub validate_year {
     my ($self, $year) = @_;
 
-    die sprintf("ERROR: Invalid year [%s].\n", defined($year)?($year):(''))
+    my @caller = caller(0);
+    @caller    = caller(2) if $caller[3] eq '(eval)';
+
+    Date::Exception::InvalidYear->throw({
+        method      => __PACKAGE__."::validate_year",
+        message     => sprintf("ERROR: Invalid year [%s].", defined($year)?($year):('')),
+        filename    => $caller[1],
+        line_number => $caller[2] })
         unless (defined($year) && ($year =~ /^\d+$/) && ($year > 0));
 }
 
@@ -165,7 +176,14 @@ Validates the given C<$month>. It has to be between 1 and 12.
 sub validate_month {
     my ($self, $month) = @_;
 
-    die sprintf("ERROR: Invalid month [%s].\n", defined($month)?($month):(''))
+    my @caller = caller(0);
+    @caller    = caller(2) if $caller[3] eq '(eval)';
+
+    Date::Exception::InvalidMonth->throw({
+        method      => __PACKAGE__."::validate_month",
+        message     => sprintf("ERROR: Invalid month [%s].", defined($month)?($month):('')),
+        filename    => $caller[1],
+        line_number => $caller[2] })
         unless (defined($month) && ($month =~ /^\d+$/) && ($month >= 1) && ($month <= 12));
 }
 
@@ -178,7 +196,14 @@ Validates the given C<$day>. It has to be between 1 and 31.
 sub validate_day {
     my ($self, $day) = @_;
 
-    die sprintf("ERROR: Invalid day [%s].\n", defined($day)?($day):(''))
+    my @caller = caller(0);
+    @caller    = caller(2) if $caller[3] eq '(eval)';
+
+    Date::Exception::InvalidDay->throw({
+        method      => __PACKAGE__."::validate_day",
+        message     => sprintf("ERROR: Invalid day [%s].", defined($day)?($day):('')),
+        filename    => $caller[1],
+        line_number => $caller[2] })
         unless (defined($day) && ($day =~ /^\d+$/) && ($day >= 1) && ($day <= 31));
 }
 

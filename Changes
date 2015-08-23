@@ -1,5 +1,8 @@
 Revision history for Date::Utils
 
+0.11  Sun Aug 23 10:45:00 2015
+      - Used Date::Exception package to throw exception instead die() where applicable.
+
 0.10  Mon Jul 13 11:10:00 2015
       - Added method create_calendar().
 
