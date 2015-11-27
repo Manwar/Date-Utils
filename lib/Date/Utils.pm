@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION = '0.11';
+$Date::Utils::VERSION = '0.12';
 
 =head1 NAME
 
@@ -8,7 +8,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.11
+Version 0.12
 
 =cut
 
@@ -322,7 +322,7 @@ Mohammad S Anwar, C<< <mohammad.anwar at yahoo.com> >>
 
 =head1 REPOSITORY
 
-L<https://github.com/Manwar/Date-Utils>
+L<https://github.com/manwar/Date-Utils>
 
 =head1 ACKNOWLEDGEMENTS
 

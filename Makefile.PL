@@ -29,6 +29,9 @@ WriteMakefile(
     clean => { FILES => 'Date-Utils-*' },
     (eval { ExtUtils::MakeMaker->VERSION(6.46) } ? (META_MERGE => {
         'meta-spec' => { version => 2 },
+        provides    => {
+            'Date::Utils' => { file => 'lib/Date/Utils.pm', version => '0.12' },
+        },
         resources => {
             repository => {
                 type => 'git',
