@@ -23,7 +23,7 @@ WriteMakefile(
         'Moo::Role'               => '2.000000',
         'namespace::clean'        => '0.24',
         'Term::ANSIColor::Markup' => '0.06',
-        'Date::Exception'         => '0.01',
+        'Date::Exception'         => '0.03',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Date-Utils-*' },
