@@ -1,7 +1,10 @@
 Revision history for Date::Utils
 
-0.12  Sat Dec 19 13:10:00 2015
+0.13  Sat Dec 19 13:10:00 2015
       - Upgraded to use Date::Exception v0.03.
+
+0.12  Fri Nov 27 10:10:00 2015
+      - Added key 'provides' to the Makefile.PL script.
 
 0.11  Sun Aug 23 10:45:00 2015
       - Used Date::Exception package to throw exception instead die() where applicable.
