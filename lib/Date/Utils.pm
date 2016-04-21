@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.15';
+$Date::Utils::VERSION   = '0.16';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.15
+Version 0.16
 
 =cut
 
@@ -309,7 +309,7 @@ sub _get_dates {
                 map { $line .= ' 'x($max_length_day_name+3) } (1..$x-1);
             }
             elsif ($x != 7) {
-                $line .= '<blue><bold>|</bold>'.' 'x($max_length_day_name+2);
+                $line .= '<blue><bold>|</bold></blue>'.' 'x($max_length_day_name+2);
             }
         }
     }

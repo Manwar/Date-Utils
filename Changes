@@ -1,5 +1,8 @@
 Revision history for Date::Utils
 
+0.16  Thu Apr 21 11:20:00 2016
+      - Fixed leaking of calendar color (more visible in Persian Calendar).
+
 0.15  Fri Mar 25 13:00:00 2016
       - Added unit test t/meta-json.t and t/meta-yml.t.
       - Updated copyright year information.
