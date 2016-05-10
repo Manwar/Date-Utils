@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.16';
+$Date::Utils::VERSION   = '0.17';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.16
+Version 0.17
 
 =cut
 
@@ -25,11 +25,27 @@ use Date::Exception::InvalidDay;
 use Date::Exception::InvalidMonth;
 use Date::Exception::InvalidYear;
 
+requires qw(months days);
+
 has gregorian_epoch => (is => 'ro', default => sub { 1721425.5 });
 
 =head1 DESCRIPTION
 
-Common date functions as Moo Role.
+Common date functions as Moo Role. It is being used by the following distributions:
+
+=over 4
+
+=item * L<Date::Bahai::Simple>
+
+=item * L<Date::Gregorian::Simple>
+
+=item * L<Date::Hijri::Simple>
+
+=item * L<Date::Persian::Simple>
+
+=item * L<Date::Saka::Simple>
+
+=back
 
 =head1 METHODS
 
@@ -148,6 +164,48 @@ sub is_gregorian_leap_year {
     return (($year % 4) == 0) && (!((($year % 100) == 0) && (($year % 400) != 0)));
 }
 
+=head2 get_month_number($month_name)
+
+Returns the month number starting with 1 for the given C<$month_name>.
+
+=cut
+
+sub get_month_number {
+    my ($self, $month_name) = @_;
+
+    if (defined $month_name && ($month_name =~ /[A-Z]/i)) {
+        $self->validate_month_name($month_name);
+
+        my $months = $self->months;
+        foreach my $index (1..$#$months) {
+            return $index if (uc($months->[$index]) eq uc($month_name));
+        }
+    }
+
+    my @caller = caller(0);
+    @caller    = caller(2) if $caller[3] eq '(eval)';
+
+    Date::Exception::InvalidMonth->throw({
+        method      => __PACKAGE__."::get_month_number",
+        message     => sprintf("ERROR: Invalid month name [%s].", defined($month_name)?($month_name):('')),
+        filename    => $caller[1],
+        line_number => $caller[2] });
+}
+
+=head2 get_month_name($month)
+
+Returns the month name for the given C<$month> number (1,2,3 etc).
+
+=cut
+
+sub get_month_name {
+    my ($self, $month) = @_;
+
+    $self->validate_month($month);
+
+    return $self->months->[$month];
+}
+
 =head2 validate_year($year)
 
 Validates the given C<$year>. It has to be > 0 and numbers only.
@@ -170,12 +228,16 @@ sub validate_year {
 
 =head2 validate_month($month)
 
-Validates the given C<$month>. It has to be between 1 and 12.
+Validates the given C<$month>. It has to be between 1 and 12 or month name.
 
 =cut
 
 sub validate_month {
     my ($self, $month) = @_;
+
+    if (defined $month && ($month =~ /[A-Z]/i)) {
+        return $self->validate_month_name($month);
+    }
 
     my @caller = caller(0);
     @caller    = caller(2) if $caller[3] eq '(eval)';
@@ -186,6 +248,27 @@ sub validate_month {
         filename    => $caller[1],
         line_number => $caller[2] })
         unless (defined($month) && ($month =~ /^\d+$/) && ($month >= 1) && ($month <= 12));
+}
+
+=head2 validate_month_name($month_name)
+
+Validates the given C<$month_name>.
+
+=cut
+
+sub validate_month_name {
+    my ($self, $month_name) = @_;
+
+    my @caller = caller(0);
+    @caller    = caller(2) if $caller[3] eq '(eval)';
+
+    my $months = $self->months;
+    Date::Exception::InvalidMonth->throw({
+        method      => __PACKAGE__."::validate_month_name",
+        message     => sprintf("ERROR: Invalid month name [%s].", defined($month_name)?($month_name):('')),
+        filename    => $caller[1],
+        line_number => $caller[2] })
+        unless (defined($month_name) && ($month_name =~ /[A-Z]/i) && (grep /$month_name/i, @{$months}[1..$#$months]));
 }
 
 =head2 validate_day($day)
@@ -328,6 +411,22 @@ L<https://github.com/manwar/Date-Utils>
 =head1 ACKNOWLEDGEMENTS
 
 Entire logic is based on the L<code|http://www.fourmilab.ch/documents/calendar> written by John Walker.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item * L<Calendar::Bahai>
+
+=item * L<Calendar::Gregorian>
+
+=item * L<Calendar::Hijri>
+
+=item * L<Calendar::Persian>
+
+=item * L<Calendar::Saka>
+
+=back
 
 =head1 BUGS
 

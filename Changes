@@ -1,5 +1,15 @@
 Revision history for Date::Utils
 
+0.17  Tue May 10 10:50:00 2016
+      - Updated to require 'months' and 'days'.
+      - Added method validate_month_name().
+      - Added method get_month_number().
+      - Added method get_month_name().
+      - Added unit test for method validate_month_name().
+      - Added unit test for method get_month_number().
+      - Added unit test for method get_month_name().
+      - Added section "SEE ALSO".
+
 0.16  Thu Apr 21 11:20:00 2016
       - Fixed leaking of calendar color (more visible in Persian Calendar).
 
