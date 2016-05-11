@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.17';
+$Date::Utils::VERSION   = '0.18';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.17
+Version 0.18
 
 =cut
 
@@ -201,7 +201,12 @@ Returns the month name for the given C<$month> number (1,2,3 etc).
 sub get_month_name {
     my ($self, $month) = @_;
 
-    $self->validate_month($month);
+    if (defined $month) {
+        $self->validate_month($month);
+    }
+    else {
+        $month = $self->month;
+    }
 
     return $self->months->[$month];
 }

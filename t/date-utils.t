@@ -2,18 +2,46 @@
 
 package T::Date::Utils;
 
+use Time::localtime;
 use Moo;
 use namespace::clean;
 
 has 'months' => (is => 'ro', default => sub { [ '', qw(January February March April May June July August September October November December) ] });
 has 'days'   => (is => 'ro', default => sub { [ qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)] });
 
+has year  => (is => 'rw', predicate => 1);
+has month => (is => 'rw', predicate => 1);
+has day   => (is => 'rw', predicate => 1);
+
 with 'Date::Utils';
+
+sub BUILD {
+    my ($self) = @_;
+
+    if ($self->has_year && $self->has_month && $self->has_day) {
+        $self->validate_year($self->year);
+        $self->validate_month($self->month);
+        if ($self->is_gregorian_leap_year($self->year)) {
+            my $day = $self->day;
+            die "ERROR: Invalid day [%s].", defined($day)?($day):(''), "\n"
+                unless (defined($day) && ($day =~ /^\d+$/) && ($day >= 1) && ($day <= 29));
+        }
+        else {
+            $self->validate_day($self->day);
+        }
+    }
+    else {
+        my $today = localtime;
+        $self->year($today->year + 1900);
+        $self->month($today->mon + 1);
+        $self->day($today->mday);
+    }
+}
 
 package main;
 
 use 5.006;
-use Test::More tests => 19;
+use Test::More tests => 20;
 use strict; use warnings;
 
 my $t = T::Date::Utils->new;
@@ -31,6 +59,7 @@ is($t->get_month_number('January'), 1);
 is($t->get_month_number('December'), 12);
 is($t->get_month_number('MAY'), 5);
 is($t->get_month_name(5), 'May');
+is(T::Date::Utils->new(year => 2016, month => 4, day => 1)->get_month_name, 'April');
 
 eval { $t->get_month_name(13) };
 like($@, qr/ERROR: Invalid month/);
