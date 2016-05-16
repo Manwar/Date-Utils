@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.18';
+$Date::Utils::VERSION   = '0.19';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.18
+Version 0.19
 
 =cut
 
@@ -173,13 +173,16 @@ Returns the month number starting with 1 for the given C<$month_name>.
 sub get_month_number {
     my ($self, $month_name) = @_;
 
-    if (defined $month_name && ($month_name =~ /[A-Z]/i)) {
+    if (defined $month_name && ($month_name =~ /[A-Z\'\-\s]/i)) {
         $self->validate_month_name($month_name);
+    }
+    else {
+        $month_name = $self->get_month_name;
+    }
 
-        my $months = $self->months;
-        foreach my $index (1..$#$months) {
-            return $index if (uc($months->[$index]) eq uc($month_name));
-        }
+    my $months = $self->months;
+    foreach my $index (1..$#$months) {
+        return $index if (uc($months->[$index]) eq uc($month_name));
     }
 
     my @caller = caller(0);

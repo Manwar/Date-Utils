@@ -6,7 +6,7 @@ use Time::localtime;
 use Moo;
 use namespace::clean;
 
-has 'months' => (is => 'ro', default => sub { [ '', qw(January February March April May June July August September October November December) ] });
+has 'months' => (is => 'rw', default => sub { [ '', qw(January February March April May June July August September October November December) ] });
 has 'days'   => (is => 'ro', default => sub { [ qw(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)] });
 
 has year  => (is => 'rw', predicate => 1);
@@ -41,7 +41,7 @@ sub BUILD {
 package main;
 
 use 5.006;
-use Test::More tests => 20;
+use Test::More tests => 21;
 use strict; use warnings;
 
 my $t = T::Date::Utils->new;
@@ -87,5 +87,15 @@ like($@, qr/^\s*$/);
 ok($t->validate_day(12));
 eval { $t->validate_day(32) };
 like($@, qr/ERROR: Invalid day/);
+
+# Hijri Months
+$t->months(
+    [
+     undef,
+     q/Muharram/, q/Safar/ , q/Rabi' al-awwal/, q/Rabi' al-thani/,
+     q/Jumada al-awwal/, q/Jumada al-thani/, q/Rajab/ , q/Sha'aban/,
+     q/Ramadan/ , q/Shawwal/ , q/Dhu al-Qi'dah/ , q/Dhu al-Hijjah/
+    ]);
+is($t->get_month_number("Sha'aban"), 8);
 
 done_testing;

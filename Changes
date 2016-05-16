@@ -1,5 +1,9 @@
 Revision history for Date::Utils
 
+0.19  Mon May 16 11:00:00 2016
+      - Updated method get_month_number() to have parameter month_name optional.
+      - Added new test for method get_month_number().
+
 0.18  Wed May 11 10:50:00 2016
       - Updated method get_month_name().
       - Added new test for method get_month_name().
