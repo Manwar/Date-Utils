@@ -1,5 +1,8 @@
 Revision history for Date::Utils
 
+0.21  Tue Jul 26 10:15:00 2016
+      - Dropped method create_calendar() as it's no longer relevant here.
+
 0.20  Wed May 25 11:05:00 2016
       - Updated method get_month_number(), method validate_month() and method validate_month_name() with
         regard to handling month name.

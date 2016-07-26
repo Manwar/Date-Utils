@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.20';
+$Date::Utils::VERSION   = '0.21';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.21
 
 =cut
 
@@ -59,47 +59,6 @@ sub jwday {
     my ($self, $julian_date) = @_;
 
     return floor($julian_date + 1.5) % 7;
-}
-
-=head2 create_calendar(\%params)
-
-Returns the color coded calendar as a scalar string.It expects one parameter as a
-hash ref with keys mentioned in the below table. All keys are mandatory.
-
-    +-------------+-------------------------------------------------------------+
-    | Key         | Description                                                 |
-    +-------------+-------------------------------------------------------------+
-    | start_index | Index (1-7) for the first day of the month, 1 for Sunday.   |
-    | days        | Total days count for the given month.                       |
-    | month_name  | Name of the given month.                                    |
-    | day_names   | Ref to a list of day name starting with Sunday.             |
-    | year        | Given year.                                                 |
-    +-------------+-------------------------------------------------------------+
-
-=cut
-
-sub create_calendar {
-    my ($self, $params) = @_;
-
-    my $start_index = $params->{start_index};
-    my $days        = $params->{days};
-    my $month_name  = $params->{month_name};
-    my $day_names   = $params->{day_names};
-    my $year        = $params->{year};
-
-    my $max_length_day_name = _max_days_name($day_names);
-    my $line_size = (7 * ($max_length_day_name + 2)) + 8;
-    my ($f, $s, $month_header) = _month_header($line_size, $month_name, $year);
-
-    my $line1 = _get_dashed_line($line_size);
-    my $line2 = _get_month_header($f, $month_header, $s);
-    my $line3 = _get_blocked_line($max_length_day_name);
-    my $line4 = _get_day_header($day_names, $max_length_day_name);
-    my $empty = _get_empty_space($start_index, $max_length_day_name);
-    my $dates = _get_dates($start_index, $days, $max_length_day_name);
-    my $calendar = join("\n", $line1, $line2, $line3, $line4, $line3, $empty.$dates)."\n";
-
-    return Term::ANSIColor::Markup->colorize($calendar);
 }
 
 =head2 gregorian_to_julian($year, $month, $day)
@@ -311,101 +270,6 @@ sub validate_date {
     $self->validate_year($year);
     $self->validate_month($month);
     $self->validate_day($day);
-}
-
-#
-#
-# PRIVATE METHODS
-
-sub _max_days_name {
-    my ($days_name) = @_;
-
-    my $l = 0;
-    foreach (@$days_name) {
-        if ($l < length($_)) {
-            $l = length($_);
-        }
-    }
-    return $l;
-}
-
-sub _month_header {
-    my ($line_size, $month_name, $year) = @_;
-
-    my $_month = sprintf("%s [%d BE]", $month_name, $year);
-    my $h = int($line_size/2);
-    my $m = int(length($_month)/2);
-
-    my $f = $h - $m;
-    my $s = $line_size - ($f + length($_month));
-
-    return ($f, $s, $_month);
-}
-
-sub _get_dashed_line  { '<blue><bold>+'.('-')x($_[0]-2).'+</bold></blue>' }
-
-sub _get_month_header { '<blue><bold>|</bold></blue>'.(' ')x($_[0]-1).'<yellow><bold>'.$_[1].'</bold></yellow>'.(' ')x($_[2]-1).'<blue><bold>|</bold></blue>' }
-
-sub _get_blocked_line { my $line = '<blue><bold>+'; for(1..7) { $line .= ('-')x($_[0]+2).'+'; } $line .= '</bold></blue>'; return $line; }
-
-sub _get_day_header   {
-    my ($day_names, $max_length_day_name) = @_;
-
-    my $line = '<blue><bold>|</bold></blue>';
-    my $i = 1;
-    foreach (@$day_names) {
-        my $x = length($_);
-        my $y = $max_length_day_name - $x;
-        my $z = $y + 1;
-        if ($i == 1) {
-            $line .= ((' ')x$z). "<yellow><bold>$_</bold></yellow>";
-            $i++;
-        }
-        else {
-            $line .= " <blue><bold>|</bold></blue>".((' ')x$z)."<yellow><bold>$_</bold></yellow>";
-        }
-
-    }
-    $line .= " <blue><bold>|</bold></blue>";
-
-    return $line;
-}
-
-sub _get_empty_space {
-    my ($start_index, $max_length_day_name) = @_;
-
-    my $line = '';
-    if ($start_index % 7 != 0) {
-        $line .= '<blue><bold>|</bold></blue>'.(' ')x($max_length_day_name+2);
-        map { $line .= ' 'x($max_length_day_name+3) } (2..($start_index %= 7));
-    }
-
-    return $line;
-}
-
-sub _get_dates {
-    my ($start_index, $days, $max_length_day_name) = @_;
-
-    my $line = '';
-    my $blocked_line = _get_blocked_line($max_length_day_name);
-    foreach (1 .. $days) {
-        $line .= sprintf("<blue><bold>|</bold></blue><cyan><bold>%".($max_length_day_name+1)."s </bold></cyan>", $_);
-        if ($_ != $days) {
-            $line .= "<blue><bold>|</bold></blue>\n".$blocked_line."\n" unless (($start_index + $_) % 7);
-        }
-        elsif ($_ == $days) {
-            my $x = 7 - (($start_index + $_) % 7);
-            if (($x >= 2) && ($x != 7)) {
-                $line .= '<blue><bold>|</bold></blue>'. (' 'x($max_length_day_name+2));
-                map { $line .= ' 'x($max_length_day_name+3) } (1..$x-1);
-            }
-            elsif ($x != 7) {
-                $line .= '<blue><bold>|</bold></blue>'.' 'x($max_length_day_name+2);
-            }
-        }
-    }
-
-    return sprintf("%s<blue><bold>|</bold></blue>\n%s\n", $line, $blocked_line);
 }
 
 =head1 AUTHOR
