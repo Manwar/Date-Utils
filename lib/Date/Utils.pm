@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.21';
+$Date::Utils::VERSION   = '0.22';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.21
+Version 0.22
 
 =cut
 
@@ -202,7 +202,7 @@ Validates the given C<$month>. It has to be between 1 and 12 or month name.
 sub validate_month {
     my ($self, $month) = @_;
 
-    if (defined $month && ($month !~ /^\d+$/)) {
+    if (defined $month && ($month !~ /^[-+]?\d+$/)) {
         return $self->validate_month_name($month);
     }
 
@@ -214,7 +214,7 @@ sub validate_month {
         message     => sprintf("ERROR: Invalid month [%s].", defined($month)?($month):('')),
         filename    => $caller[1],
         line_number => $caller[2] })
-        unless (defined($month) && ($month =~ /^\d+$/) && ($month >= 1) && ($month <= 12));
+        unless (defined($month) && ($month =~ /^\+?\d+$/) && ($month >= 1) && ($month <= 12));
 }
 
 =head2 validate_month_name($month_name)
@@ -235,7 +235,7 @@ sub validate_month_name {
         message     => sprintf("ERROR: Invalid month name [%s].", defined($month_name)?($month_name):('')),
         filename    => $caller[1],
         line_number => $caller[2] })
-        unless (defined($month_name) && ($month_name !~ /^\d+$/i) && (grep /$month_name/i, @{$months}[1..$#$months]));
+        unless (defined($month_name) && ($month_name !~ /^[-+]?\d+$/) && (grep /$month_name/i, @{$months}[1..$#$months]));
 }
 
 =head2 validate_day($day)

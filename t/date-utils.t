@@ -41,7 +41,7 @@ sub BUILD {
 package main;
 
 use 5.006;
-use Test::More tests => 21;
+use Test::More tests => 23;
 use strict; use warnings;
 
 my $t = T::Date::Utils->new;
@@ -74,6 +74,12 @@ like($@, qr/ERROR: Invalid year/);
 ok($t->validate_month(10));
 eval { $t->validate_month(13) };
 like($@, qr/ERROR: Invalid month/);
+
+eval { $t->validate_month(-1) };
+like($@, qr/ERROR: Invalid month (?!name)/);
+
+eval { $t->validate_month(+1) };
+like($@, qr/(?!ERROR)/);
 
 eval { $t->validate_month_name('Max') };
 like($@, qr/ERROR: Invalid month name/);
