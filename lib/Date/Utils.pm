@@ -1,6 +1,6 @@
 package Date::Utils;
 
-$Date::Utils::VERSION   = '0.22';
+$Date::Utils::VERSION   = '0.23';
 $Date::Utils::AUTHORITY = 'cpan:MANWAR';
 
 =head1 NAME
@@ -9,7 +9,7 @@ Date::Utils - Common date functions as Moo Role.
 
 =head1 VERSION
 
-Version 0.22
+Version 0.23
 
 =cut
 
@@ -337,7 +337,7 @@ L<http://search.cpan.org/dist/Date-Utils/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (C) 2015 - 2016 Mohammad S Anwar.
+Copyright (C) 2015 - 2017 Mohammad S Anwar.
 
 This program  is  free software; you can redistribute it and / or modify it under
 the  terms  of the the Artistic License (2.0). You may obtain a  copy of the full
