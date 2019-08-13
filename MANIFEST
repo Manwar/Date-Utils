@@ -7,7 +7,7 @@ README
 lib/Date/Utils.pm
 t/00-load.t
 t/date-utils.t
-t/manifest.t
-t/pod.t
-t/meta-json.t
-t/meta-yml.t
+xt/manifest.t
+xt/pod.t
+xt/meta-json.t
+xt/meta-yml.t
